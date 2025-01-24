@@ -201,7 +201,7 @@ class DownloadTask(QRunnable):
             video_title = info_dict['title']
             safe_title = sanitize_filename(video_title)
 
-            # Renombramos el archivo descargado a uno “seguro” (por si yt_dlp no lo hizo por sí solo)
+            # Renombramos el archivo descargado a uno "seguro" (por si yt_dlp no lo hizo por sí solo)
             # Obtenemos extensión original (e.g. .mp4) y creamos un path con título saneado
             ext_original = os.path.splitext(original_video_path)[1]  # ej. ".mp4"
             sanitized_video_path = os.path.join(self.carpeta, f"{safe_title}{ext_original}")
@@ -281,7 +281,7 @@ class DescargadorApp(QtWidgets.QMainWindow):
         super().__init__()
         # Cargamos la interfaz desde el .ui
         directorio_base = os.path.dirname(os.path.abspath(__file__))
-        uic.loadUi(os.path.join(directorio_base, "Descarga_Videos_Youtube.ui"), self)
+        uic.loadUi(os.path.join(directorio_base,"UIs", "Descarga_Videos_Youtube.ui"), self)
 
         # Referencia a widgets
         self.urlLineEdit = self.findChild(QtWidgets.QLineEdit, "urlLineEdit")
@@ -316,6 +316,9 @@ class DescargadorApp(QtWidgets.QMainWindow):
 
         # Verificamos actualización de yt_dlp
         verificar_actualizacion_yt_dlp(self)
+
+        # Aplicar estilo oscuro
+        self.set_dark_theme()
 
     def seleccionar_carpeta(self):
         carpeta = QFileDialog.getExistingDirectory(
@@ -365,14 +368,54 @@ class DescargadorApp(QtWidgets.QMainWindow):
         self.threadpool.start(task)
 
     def on_descarga_finalizada(self, mensaje):
-        self.descargarButton.setEnabled(True)
         self.progressBar.setValue(0)
+        # Primero mostramos el QMessageBox (bloquea hasta que el usuario cierra)
         QMessageBox.information(self, "Éxito", mensaje)
+        # Una vez cerrado el cuadro, re-habilitamos el botón
+        self.descargarButton.setEnabled(True)
 
     def on_descarga_error(self, mensaje_error):
-        self.descargarButton.setEnabled(True)
         self.progressBar.setValue(0)
         QMessageBox.critical(self, "Error", mensaje_error)
+        self.descargarButton.setEnabled(True)
+
+    def set_dark_theme(self):
+        """
+        Aplica un tema oscuro a la aplicación.
+        """
+        dark_style = """
+        QMainWindow {
+            background-color: #2E2E2E;
+        }
+        QLabel, QCheckBox, QRadioButton {
+            color: #FFA500;  /* Naranja */
+        }
+        QLineEdit, QComboBox {
+            background-color: #D3D3D3;  /* Gris claro */
+            color: #000000;  /* Negro */
+        }
+        QPushButton {
+            background-color: #444444;
+            color: #FFA500;  /* Naranja */
+            border: 1px solid #555555;  /* Color del borde más cercano al fondo */
+            border-radius: 5px;  /* Esquinas redondeadas */
+            padding: 5px;
+        }
+        QPushButton:hover {
+            background-color: #555555;
+        }
+        QProgressBar {
+            background-color: #D3D3D3;  /* Gris claro */
+            color: #000000;  /* Negro */
+            border: 1px solid #FFA500;
+            border-radius: 5px;  /* Esquinas redondeadas */
+            text-align: center;
+        }
+        QProgressBar::chunk {
+            background-color: #FFA500;  /* Naranja */
+        }
+        """
+        self.setStyleSheet(dark_style)
 
 
 # -----------------------------------------------------------------------------
